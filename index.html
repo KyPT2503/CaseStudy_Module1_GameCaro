@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game Caro</title>
+    <style>
+        html {
+            display:flex;
+            align-items:center;
+            justify-content: center;
+            background-color: #8686ba;
+        }
+
+        button {
+            width:100px;
+            height:40px;
+            background-color:lightskyblue;
+            border-radius:10px;
+            border:1px solid darkblue;
+            color:darkgreen;
+            font-size:15px;
+        }
+        button:focus
+        {
+        }
+
+        .game-container {
+            position:relative;
+            border:1px solid blue;
+            width:684px;
+            height:788px;
+            border-radius:10px;
+            background-color: #8383dd;
+        }
+
+        .playerBox01 {
+            display:inline-block;
+            posotion:absolute;
+            top:10px;
+            left:10px;
+            width:48%;
+            height:50px;
+            border:1px solid red;
+            border-radius:10px;
+            margin:10px 2px 10px 2px;
+            font-size:40px;
+            color:darkred;
+            text-align:center;
+        }
+
+        .playerBox02 {
+            display:inline-block;
+            posotion:absolute;
+            top:10px;
+            right:10px;
+            width:48%;
+            height:50px;
+            border:1px solid red;
+            border-radius:10px;
+            margin:10px auto 10px 2px;
+            font-size:40px;
+            color:darkred;
+            text-align:center;
+        }
+
+        .boxRow {
+            display:block;
+        }
+
+        .box {
+            display:inline-block;
+            border:1px solid #2c0fab;
+            width:30px;
+            height:30px;
+            font-size:28px;
+            text-align:center;
+            color: darkred;
+        }
+    </style>
+</head>
+<body>
+<button onclick="startNewGame()">New Game</button>
+<div class="game-container">
+    <div class="playerBox01" id="playerX">X</div>
+    <div class="playerBox02" id="playerO">O</div>
+    <table id="container"></table>
+</div>
+<script>
+    let marker=`X`;
+    let boxList=[];
+    for(let i=0;i<20;i++)
+    {
+        let boxRow=[];
+        for(let j=0;j<20;j++)
+        {
+            boxRow.push('_');
+        }
+        boxList.push(boxRow);
+    }
+
+    function startNewGame()
+    {
+        let audio=new Audio('https://audio-previews.elements.envatousercontent.com/files/193611406/preview.mp3');
+        audio.play();
+        checkMark();
+        let contentContainer='';
+        for(let i=0;i<20;i++)
+        {
+            let content='<tr class="boxRow">';
+            for(let j=0;j<20;j++)
+            {
+                content+='<td class="box" onclick="mark(this,'+i+','+j+')"></td>'
+            }
+            content+='</tr>'
+            contentContainer+=content;
+        }
+        document.getElementById('container').innerHTML=contentContainer;
+
+        /*for variable*/
+        marker='X';
+        boxList=[];
+        for(let i=0;i<20;i++)
+        {
+            let boxRow=[];
+            for(let j=0;j<20;j++)
+            {
+                boxRow.push('_');
+            }
+            boxList.push(boxRow);
+        }
+    }
+    function mark(node,x,y)
+    {
+        if(boxList[x][y]==`_`)
+        {
+            let audio=new Audio('https://audio-previews.elements.envatousercontent.com/files/136199140/preview.mp3');
+            audio.play();
+            node.innerText=marker;
+            boxList[x][y]=marker;
+            (marker=='X')?marker='O':marker='X';
+            checkMark();
+        }
+        checkEnd();
+    }
+    function checkMark()
+    {
+        if(marker=='X')
+        {
+            document.getElementById('playerX').style.border='3px solid red';
+            document.getElementById('playerO').style.border='1px solid red'
+        }
+        else
+        {
+            document.getElementById('playerX').style.border='1px solid red'
+            document.getElementById('playerO').style.border='3px solid red'
+        }
+    }
+    function checkEnd()
+    {
+        for(let i=0;i<20;i++)
+        {
+            let lineDown=``,lineRight='',lineLeftToTop='',lineLeftToBottom='';
+            for(let j=0;j<20;j++)
+            {
+                lineRight+=boxList[i][j];
+                lineDown+=boxList[j][i];
+            }
+            for(let j=0;i-j>=0;j++)
+            {
+                lineLeftToTop += boxList[i-j][j];
+            }
+            for(let j=0;i+j<20;j++)
+            {
+                lineLeftToBottom+= boxList[i+j][j];
+            }
+            lineAcceptable(lineDown);
+            lineAcceptable(lineRight);
+            lineAcceptable(lineLeftToTop);
+            lineAcceptable(lineLeftToBottom);
+        }
+        for(let j=0;j<20;j++)
+        {
+            let lineTopToRight='',lineBottomToRight='';
+            for(let i=0;i+j<20;i++)
+            {
+                lineTopToRight+=boxList[i][i+j]
+            }
+            for(let i=19;i>=j;i--)
+            {
+                lineBottomToRight+=boxList[i][j+(19-i)];
+            }
+            lineAcceptable(lineTopToRight);
+            lineAcceptable(lineBottomToRight);
+        }
+    }
+    function lineAcceptable(line)
+    {
+        let indexX=line.indexOf(`XXXXX`);
+        let indexO=line.indexOf(`OOOOO`);
+        if(indexX!=-1)
+        {
+            if(indexX-1>=0 && indexX+5<line.length)
+            {
+                if(line[indexX-1]=='O' && line[indexX+5]=='O') return 0;
+            }
+            endGame('X');
+        }
+        if(indexO!=-1)
+        {
+            if(indexO-1>=0 && indexO+5<line.length)
+            {
+                if(line[indexO-1]=='X' && line[indexO+5]=='X') return 0;
+            }
+            endGame('O');
+        }
+    }
+    function endGame(value)
+    {
+        if(value=='X')
+        {
+            let audio=new Audio('https://audio-previews.elements.envatousercontent.com/files/306293453/preview.mp3');
+            audio.play();
+            document.getElementById('container').innerHTML='<p style="position:relative;left:200px;top:200px;display:block;width:100%;color:darkred;font-size:100px;text-align:center">X Win!</p>';
+        }
+        else if(value=='O')
+        {
+            let audio=new Audio('https://audio-previews.elements.envatousercontent.com/files/306293453/preview.mp3');
+            audio.play();
+            document.getElementById('container').innerHTML='<p style="position:relative;left:200px;top:200px;display:block;width:100%;color:darkred;font-size:100px;text-align:center">O Win!</p>';
+        }
+    }
+</script>
+</body>
+</html>
